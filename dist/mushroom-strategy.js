@@ -908,7 +908,8 @@ class MushroomStrategy {
 
     // Return views
     return {
-      views: Views
+      ...info.config,
+      views: Views.concat(info.config.views || []),
     };
   }
   

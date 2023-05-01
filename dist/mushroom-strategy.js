@@ -547,11 +547,8 @@ class MushroomStrategy {
     homeViewcards.push
     (
       {
-        type: "custom:mushroom-title-card",
-        title: "Rooms"
-      },
-      {
         type: "vertical-stack",
+        title: "Rooms"
         cards: horizontalRoomcards
       }
     );

@@ -548,8 +548,8 @@ class MushroomStrategy {
     (
       {
         type: "vertical-stack",
-        title: "Rooms"
-        cards: horizontalRoomcards
+        title: "Rooms",
+        cards: horizontalRoomcards,
       }
     );
 

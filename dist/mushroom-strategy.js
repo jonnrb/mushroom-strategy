@@ -852,33 +852,22 @@ class MushroomStrategy {
         const cameraAreaCard = [];
         const cameras = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "camera.");
         // If there are cameras, create a title card and a camera card for each cameras
-        if (cameras.size > 0) 
-        {
-          cameraAreaCard.push
-          (
-            {
-              type: "custom:mushroom-title-card",
-              title: area.name,
-            },
-          );
-
-          for (const camera of cameras)
-            {
-              cameraAreaCard.push
-              (
-                {
-                  type: "custom:webrtc-camera",
-                  entity: camera.entity_id
-                },
-              );
-            }
-        }
-
         cameraViewCards.push
           (
             {
               type: "vertical-stack",
-              cards: cameraAreaCard
+              cards: createPlatformCard(
+                cameras,
+                entity_config,
+                {
+                  type: "custom:webrtc-camera",
+                  entity: camera.entity_id
+                },
+                {
+                  type: "custom:mushroom-title-card",
+                  title: area.name,
+                },
+              )
             },
           )
       }

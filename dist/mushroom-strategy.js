@@ -852,7 +852,7 @@ class MushroomStrategy {
         const cameraAreaCard = [];
         const cameras = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "camera.");
         // If there are cameras, create a title card and a camera card for each cameras
-        if (cameras.length > 0) {
+        if (cameras.size > 0) {
           cameraViewCards.push
             (
               {

@@ -861,7 +861,6 @@ class MushroomStrategy {
                 entity_config,
                 {
                   type: "custom:webrtc-camera",
-                  entity: camera.entity_id
                 },
                 {
                   type: "custom:mushroom-title-card",

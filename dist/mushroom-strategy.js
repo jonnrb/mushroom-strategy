@@ -880,7 +880,12 @@ class MushroomStrategy {
           title: "Cameras",
           path: "cameras",
           icon: "mdi:cctv",
-          cards: cameraViewCards
+          cards: cameraViewCards,
+          type: 'custom:masonry-layout',
+          layout: {
+            width: 480,
+            max_cols: 4,
+          },
         }
       );        
     }

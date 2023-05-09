@@ -228,7 +228,7 @@ class MushroomStrategy {
     ]);
   
     // Create People card for each person 
-    let people = Object.values(info.hass.states).filter((stateObj) =>
+    let people = Object.values(info.hass.states || {}).filter((stateObj) =>
       stateObj.entity_id.startsWith("person.")
     );
     const peopleCards = [];

@@ -1,4 +1,4 @@
-const getFilteredEntitiesFromEntityRegistry = (entities, devices, area, filter) => {
+const getFilteredEntitiesFromEntityRegistry = (entities, devices, area, startsWith) => {
   const areaDevices = new Set();
   // Find all devices linked to this area
   for (const device of devices) {
@@ -11,7 +11,7 @@ const getFilteredEntitiesFromEntityRegistry = (entities, devices, area, filter) 
   const filteredEntities = new Set();
   for (const entity of entities) 
   {
-    if ((areaDevices.has(entity.device_id) || entity.area_id === area.area_id) && filter(entity.entity_id) && entity.hidden_by == null && entity.disabled_by == null)
+    if ((areaDevices.has(entity.device_id) || entity.area_id === area.area_id) && entity.entity_id.startsWith(startsWith) && entity.hidden_by == null && entity.disabled_by == null)
     {
       filteredEntities.add(entity);
     }
@@ -19,7 +19,7 @@ const getFilteredEntitiesFromEntityRegistry = (entities, devices, area, filter) 
   return filteredEntities;
 };
 
-const getFilteredEntitiesFromStates = (info, entities, devices, area, filter) => {
+const getFilteredEntitiesFromStates = (info, entities, devices, area, startsWith) => {
   const entityLookup = Object.fromEntries(
     entities.map((ent) => [ent.entity_id, ent])
   );
@@ -28,7 +28,7 @@ const getFilteredEntitiesFromStates = (info, entities, devices, area, filter) =>
   );
 
   let states = Object.values(info.hass.states).filter((stateObj) =>
-    filter(stateObj.entity_id)
+    stateObj.entity_id.startsWith(startsWith) 
   );
   const areaEntities = new Set;
   for (const stateObj of states) {
@@ -105,7 +105,7 @@ const createTitleWithControls = (title, subtitle, offService, onService, iconOff
     ]
   }
 )
-const createPlatformCard = (entities, entity_config, defaultCardMap, titleCard, doubleTapActionConfig) => {
+const createPlatformCard = (entities, entity_config, defaultCard, titleCard, doubleTapActionConfig) => {
   const platformCards = [];
   if (titleCard != null) {
     platformCards.push(titleCard);
@@ -132,7 +132,8 @@ const createPlatformCard = (entities, entity_config, defaultCardMap, titleCard, 
       platformCards.push
       (
         {
-          ...(defaultCardMap[(entity.entity_id || '').split('.')[0]] || defaultCardMap['*'])(entity),
+          entity: entity.entity_id,
+          ...defaultCard,
           ...doubleTapAction
         }
       )
@@ -170,7 +171,8 @@ const createPlatformCard = (entities, entity_config, defaultCardMap, titleCard, 
       platformCards.push
       (
         {
-          ...(defaultCardMap[(entity.entity_id || '').split('.')[0]] || defaultCardMap['*'])(entity),
+          entity: entity.entity_id,
+          ...defaultCard,
           ...doubleTapAction
         }
       )
@@ -228,7 +230,7 @@ class MushroomStrategy {
     ]);
   
     // Create People card for each person 
-    let people = Object.values(info.hass.states || {}).filter((stateObj) =>
+    let people = Object.values(info.hass.states).filter((stateObj) =>
       stateObj.entity_id.startsWith("person.")
     );
     const peopleCards = [];
@@ -592,7 +594,7 @@ class MushroomStrategy {
       lightViewCards.push(createTitleWithControls("All Lights", lightCountTemplate + " lights on", "light.turn_off", "light.turn_on", "mdi:lightbulb-off", "mdi:lightbulb", area_ids ));
       for (const area of definedAreas)
       {
-        const lights = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("light."));
+        const lights = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "light.");
         // If there are lights, create a title card and a light card for each lights
         if (lights.size > 0) 
         {
@@ -603,15 +605,10 @@ class MushroomStrategy {
                 lights, 
                 entity_config, 
                 {
-                  '*'(e) {
-                    return {
-                      entity: e.entity_id,
-                      type: "custom:mushroom-light-card",
-                      show_brightness_control: true,
-                      show_color_control: true,
-                      use_light_color: true
-                    }
-                  },
+                  type: "custom:mushroom-light-card",
+                  show_brightness_control: true,
+                  show_color_control: true,
+                  use_light_color: true
                 },
                 createTitleWithControls(area.name, null, "light.turn_off", "light.turn_on", "mdi:lightbulb-off", "mdi:lightbulb", area.area_id),
                 {
@@ -654,7 +651,7 @@ class MushroomStrategy {
       fanViewCards.push(createTitleWithControls("All Fans", fanCountTemplate + " fans on", "fan.turn_off", "fan.turn_on", "mdi:fan-off", "mdi:fan", area_ids ));
       for (const area of definedAreas)
       {
-        const fans = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("fan."));
+        const fans = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "fan.");
         if (fans.size > 0) 
         {
           fanViewCards.push(
@@ -664,15 +661,10 @@ class MushroomStrategy {
                 fans, 
                 entity_config, 
                 {
-                  '*'(e) {
-                    return {
-                      entity: e.entity_id,
-                      type: "custom:mushroom-fan-card",
-                      show_percentage_control: true,
-                      show_oscillate_control: true,
-                      icon_animation: true
-                    }
-                  },
+                  type: "custom:mushroom-fan-card",
+                  show_percentage_control: true,
+                  show_oscillate_control: true,
+                  icon_animation: true
                 },
                 createTitleWithControls(area.name, null,  "fan.turn_off", "fan.turn_on", "mdi:fan-off", "mdi:fan", area.area_id)
               )
@@ -702,7 +694,7 @@ class MushroomStrategy {
       coverViewCards.push(createTitleWithControls("All Covers", coverCountTemplate + " covers open", "cover.close_cover", "cover.open_cover", "mdi:arrow-down", "mdi:arrow-up", area_ids ));
       for (const area of definedAreas)
       {
-        const covers = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("cover."));
+        const covers = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "cover.");
         if (covers.size > 0) 
         {
           coverViewCards.push
@@ -713,15 +705,10 @@ class MushroomStrategy {
                   covers, 
                   entity_config, 
                   {
-                    '*'(e) {
-                      return {
-                        entity: e.entity_id,
-                        type: "custom:mushroom-cover-card",
-                        show_buttons_control: true,
-                        show_position_control: true,
-                        show_tilt_position_control: true
-                      }
-                    },
+                    type: "custom:mushroom-cover-card",
+                    show_buttons_control: true,
+                    show_position_control: true,
+                    show_tilt_position_control: true
                   },
                   createTitleWithControls(area.name, null, "cover.close_cover", "cover.open_cover", "mdi:arrow-down", "mdi:arrow-up", area.area_id)
                 )
@@ -751,7 +738,7 @@ class MushroomStrategy {
       switchViewCards.push(createTitleWithControls("All Switches", switchCountTemplate + " switches on", "switch.turn_off","switch.turn_on", "mdi:power-plug-off", "mdi:power-plug", area_ids ));
       for (const area of definedAreas)
       {
-        const switches = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("switch."));
+        const switches = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "switch.");
         if (switches.size > 0) 
         {
           switchViewCards.push
@@ -762,16 +749,11 @@ class MushroomStrategy {
                   switches, 
                   entity_config, 
                   {
-                    '*'(e) {
-                      return {
-                        entity: e.entity_id,
-                        type: "custom:mushroom-entity-card",
-                        tap_action:
-                        {
-                          action: "toggle"
-                        }
-                      }
-                    },
+                    type: "custom:mushroom-entity-card",
+                    tap_action:
+                    {
+                      action: "toggle"
+                    }
                   },
                   createTitleWithControls(area.name, null, "switch.turn_off","switch.turn_on", "mdi:power-plug-off", "mdi:power-plug", area.area_id)
                 )
@@ -809,49 +791,26 @@ class MushroomStrategy {
       );
       for (const area of definedAreas)
       {
-        const thermostats = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("climate."));
-        const extraClimateEntities =
-          strategyOptions.extra_climate_entities != undefined
-          ? getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => strategyOptions.extra_climate_entities.includes(e))
-          : new Set();
-        if (thermostats.size > 0 || extraClimateEntities.size > 0)
+        const thermostats = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "climate.");
+        if (thermostats.size > 0) 
         {
           thermostatViewCards.push
             (
               {
                 type: "vertical-stack",
                 cards: createPlatformCard(
-                  new Set([...thermostats, ...extraClimateEntities]),
+                  thermostats, 
                   entity_config, 
                   {
-                    climate(e) {
-                      return {
-                        entity: e.entity_id,
-                        type: "custom:mushroom-climate-card",
-                        hvac_modes:
-                        [
-                          "off",
-                          "cool",
-                          "heat",
-                          "fan_only"
-                        ],
-                        show_temperature_control: true
-                      }
-                    },
-                    sensor(e) {
-                      return {
-                        entities: [e.entity_id],
-                        type: "custom:mini-graph-card",
-                        animate: true,
-                        line_color: "green"
-                      }
-                    },
-                    '*'(e) {
-                      return {
-                        entity: e.entity_id,
-                        type: "custom:mushroom-entity-card",
-                      }
-                    },
+                    type: "custom:mushroom-climate-card",
+                    hvac_modes:
+                    [
+                      "off",
+                      "cool",
+                      "heat",
+                      "fan_only"
+                    ],
+                    show_temperature_control: true
                   },
                   {
                     type: "custom:mushroom-title-card",
@@ -891,7 +850,7 @@ class MushroomStrategy {
       for (const area of definedAreas)
       {
         const cameraAreaCard = [];
-        const cameras = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("camera."));
+        const cameras = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "camera.");
         // If there are cameras, create a title card and a camera card for each cameras
         if (cameras.size > 0) {
           cameraViewCards.push
@@ -902,12 +861,7 @@ class MushroomStrategy {
                   cameras,
                   entity_config,
                   {
-                    '*'(e) {
-                      return {
-                        entity: e.entity_id,
-                        type: "custom:webrtc-camera",
-                      }
-                    },
+                    type: "custom:webrtc-camera",
                   },
                   {
                     type: "custom:mushroom-title-card",
@@ -976,7 +930,7 @@ class MushroomStrategy {
     }
     
     // Create light cards     
-    const lights = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("light."));
+    const lights = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "light.");
     if (lights.size > 0) 
     {
       cards.push
@@ -987,15 +941,10 @@ class MushroomStrategy {
             lights,
             entity_config,
             {
-              '*'(e) {
-                return {
-                  entity: e.entity_id,
-                  type: "custom:mushroom-light-card",
-                  show_brightness_control: true,
-                  show_color_control: true,
-                  use_light_color: true
-                }
-              },
+              type: "custom:mushroom-light-card",
+              show_brightness_control: true,
+              show_color_control: true,
+              use_light_color: true
             },
             createTitleWithControls(null, "Lights", "light.turn_off", "light.turn_on", "mdi:lightbulb-off", "mdi:lightbulb", area.area_id),
             {
@@ -1016,7 +965,7 @@ class MushroomStrategy {
 
     }
     // Create fan cards     
-    const fans = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("fan."));
+    const fans = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "fan.");
     if (fans.size > 0) 
     {
       cards.push
@@ -1028,23 +977,18 @@ class MushroomStrategy {
             fans, 
             entity_config,
             {
-              '*'(e) {
-                return {
-                  entity: e.entity_id,
-                  type: "custom:mushroom-fan-card",
-                  show_percentage_control: true,
-                  show_oscillate_control: true,
-                  icon_animation: true
-                }
-              }, 
-            },
+              type: "custom:mushroom-fan-card",
+              show_percentage_control: true,
+              show_oscillate_control: true,
+              icon_animation: true
+            }, 
             createTitleWithControls(null, "Fans", "fan.turn_off", "fan.turn_on", "mdi:fan-off", "mdi:fan", area.area_id))
         }
       )
     }
       
     // Create cover cards
-    const covers = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("cover."));
+    const covers = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "cover.");
     if (covers.size > 0) 
     {
       cards.push
@@ -1056,15 +1000,10 @@ class MushroomStrategy {
             covers,
             entity_config,
             {
-              '*'(e) {
-                return {
-                  entity: e.entity_id,
-                  type: "custom:mushroom-cover-card",
-                  show_buttons_control: true,
-                  show_position_control: true,
-                  show_tilt_position_control: true
-                }
-              },
+              type: "custom:mushroom-cover-card",
+              show_buttons_control: true,
+              show_position_control: true,
+              show_tilt_position_control: true
             },
             createTitleWithControls(null, "Covers", "cover.close_cover", "cover.open_cover", "mdi:arrow-down", "mdi:arrow-up", area.area_id)
           )
@@ -1073,7 +1012,7 @@ class MushroomStrategy {
     }
 
     // Create switch cards
-    const switches = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("switch."));
+    const switches = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "switch.");
     if (switches.size > 0) 
     {
       cards.push
@@ -1085,16 +1024,11 @@ class MushroomStrategy {
             switches,
             entity_config,
             {
-              '*'(e) {
-                return {
-                  entity: e.entity_id,
-                  type: "custom:mushroom-entity-card",
-                  tap_action:
-                  {
-                    action: "toggle"
-                  }
-                }
-              },
+              type: "custom:mushroom-entity-card",
+              tap_action:
+              {
+                action: "toggle"
+              }
             },
             createTitleWithControls(null, "Switches", "switch.turn_off", "switch.turn_off", "mdi:power-plug-off", "mdi:power-plug", area.area_id)
           )
@@ -1103,7 +1037,7 @@ class MushroomStrategy {
     }
 
     // Create climate cards
-    const thermoststats = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("climate."));
+    const thermoststats = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "climate.");
     if (thermoststats.size > 0) 
     {
       cards.push
@@ -1115,20 +1049,15 @@ class MushroomStrategy {
             thermoststats, 
             entity_config, 
             {
-              '*'(e) {
-                return {
-                  entity: e.entity_id,
-                  type: "custom:mushroom-climate-card",
-                  hvac_modes:
-                  [
-                    "off",
-                    "cool",
-                    "heat",
-                    "fan_only"
-                  ],
-                  show_temperature_control: true
-                }
-              },
+              type: "custom:mushroom-climate-card",
+              hvac_modes:
+              [
+                "off",
+                "cool",
+                "heat",
+                "fan_only"
+              ],
+              show_temperature_control: true
             },
             {
               type: "custom:mushroom-title-card",
@@ -1140,7 +1069,7 @@ class MushroomStrategy {
     }
 
     // Create Media player cards
-    const media_players = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("media_player."));
+    const media_players = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "media_player.");
     if (media_players.size > 0) 
     {
       cards.push
@@ -1152,25 +1081,20 @@ class MushroomStrategy {
             media_players,
             entity_config,
             {
-              '*'(e) {
-                return {
-                  entity: e.entity_id,
-                  type: "custom:mushroom-media-player-card",
-                  use_media_info: true,
-                  media_controls:
-                  [
-                    "on_off",
-                    "play_pause_stop"
-                  ],
-                  show_volume_level: true,
-                  volume_controls:
-                  [
-                    "volume_mute",
-                    "volume_set",
-                    "volume_buttons"
-                  ]
-                }
-              },
+              type: "custom:mushroom-media-player-card",
+              use_media_info: true,
+              media_controls:
+              [
+                "on_off",
+                "play_pause_stop"
+              ],
+              show_volume_level: true,
+              volume_controls:
+              [
+                "volume_mute",
+                "volume_set",
+                "volume_buttons"
+              ]
             },
             {
               type: "custom:mushroom-title-card",
@@ -1182,8 +1106,8 @@ class MushroomStrategy {
     }
 
     // Create Sensor cards
-    const sensorsStateObj = getFilteredEntitiesFromStates(info, entities, devices, area, e => e.startsWith("sensor."));
-    const sensors = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("sensor."));
+    const sensorsStateObj = getFilteredEntitiesFromStates(info, entities, devices, area, "sensor.");
+    const sensors = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "sensor.");
     if (sensors.size > 0) 
     {
       const sensorCards = []
@@ -1286,7 +1210,7 @@ class MushroomStrategy {
     }
 
     // Create card for binary sensors
-    const binary_sensors = getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => e.startsWith("binary_sensor."));
+    const binary_sensors = getFilteredEntitiesFromEntityRegistry(entities, devices, area, "binary_sensor.");
     if (binary_sensors.size > 0) 
     {
       const binarySensorCards = createPlatformCard
@@ -1294,13 +1218,8 @@ class MushroomStrategy {
         binary_sensors, 
         entity_config,
         {
-          '*'(e) {
-            return {
-              entity: e.entity_id,
-              type: "custom:mushroom-entity-card",
-              icon_color: "green"
-            }
-          },
+          type: "custom:mushroom-entity-card",
+          icon_color: "green"
         },
         null
       )
@@ -1387,13 +1306,8 @@ class MushroomStrategy {
             others,
             entity_config,
             {
-              '*'(e) {
-                return {
-                  entity: e.entity_id,
-                  type: "custom:mushroom-entity-card",
-                  icon_color: "blue-grey"
-                }
-              },
+              type: "custom:mushroom-entity-card",
+              icon_color: "blue-grey"
             },
             {
               type: "custom:mushroom-title-card",

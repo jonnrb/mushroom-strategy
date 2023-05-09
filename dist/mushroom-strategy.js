@@ -821,7 +821,7 @@ class MushroomStrategy {
               {
                 type: "vertical-stack",
                 cards: createPlatformCard(
-                  thermostats + extraClimateEntities,
+                  thermostats.concat(extraClimateEntities),
                   entity_config, 
                   {
                     climate(e) {

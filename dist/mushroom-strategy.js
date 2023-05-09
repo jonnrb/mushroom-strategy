@@ -813,8 +813,8 @@ class MushroomStrategy {
         const extraClimateEntities =
           strategyOptions.extra_climate_entities != undefined
           ? getFilteredEntitiesFromEntityRegistry(entities, devices, area, e => strategyOptions.extra_climate_entities.includes(e))
-          : [];
-        if (thermostats.size > 0 || extraClimateEntities > 0)
+          : new Set();
+        if (thermostats.size > 0 || extraClimateEntities.size > 0)
         {
           thermostatViewCards.push
             (

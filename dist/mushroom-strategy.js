@@ -489,7 +489,7 @@ class MushroomStrategy {
 
 
     // Thermostat count
-    const thermostatCountTemplate = "{% set thermostats = [" + createListOfFilteredStates(entities, devices, definedAreas, "climate.") + "]%} {{ thermostats | selectattr('state','ne','off') | selectattr('hvac_action','ne','idle') | list | count }}"
+    const thermostatCountTemplate = "{% set thermostats = [" + createListOfFilteredStates(entities, devices, definedAreas, "climate.") + "]%} {{ thermostats | selectattr('state','ne','off') | selectattr('attributes.hvac_action','ne','idle') | list | count }}"
     if (strategyOptions.chips == null || (strategyOptions.chips != null && strategyOptions.chips.climate_count != false))
     {
       chips.push

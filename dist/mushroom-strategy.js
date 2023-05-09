@@ -132,7 +132,7 @@ const createPlatformCard = (entities, entity_config, defaultCardMap, titleCard, 
       platformCards.push
       (
         {
-          ...(defaultCardMap[entity.entity_id.split('.')[0]] || defaultCardMap['*'])(entity),
+          ...(defaultCardMap[(entity.entity_id || '').split('.')[0]] || defaultCardMap['*'])(entity),
           ...doubleTapAction
         }
       )
@@ -170,7 +170,7 @@ const createPlatformCard = (entities, entity_config, defaultCardMap, titleCard, 
       platformCards.push
       (
         {
-          ...(defaultCardMap[entity.entity_id.split('.')[0]] || defaultCardMap['*'])(entity),
+          ...(defaultCardMap[(entity.entity_id || '').split('.')[0]] || defaultCardMap['*'])(entity),
           ...doubleTapAction
         }
       )

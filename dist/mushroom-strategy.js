@@ -929,7 +929,7 @@ class MushroomStrategy {
           cards: cameraViewCards,
           type: 'custom:masonry-layout',
           layout: {
-            width: 480,
+            width: 400,
             max_cols: 4,
           },
         }
